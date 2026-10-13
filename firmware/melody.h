@@ -47,20 +47,20 @@ typedef struct
 	uint16_t dur_ms;
 } melody_note_t;
 
-#define MELODY_NOTES_PER_JINGLE 3
-#define MELODY_GAP_MS 30
-// Uniform total, verified by the host sim: 150+30+150+30+300.
-#define MELODY_TOTAL_MS 660
+#define MELODY_NOTES_PER_JINGLE 5
+#define MELODY_GAP_MS 10
+// Uniform total, verified by the host sim: (150+10)*4 + 300.
+#define MELODY_TOTAL_MS 940
 
 static const melody_note_t melody_table[ JINGLE_COUNT ][ MELODY_NOTES_PER_JINGLE ] = {
-	// FOCUS_END: rising major arpeggio C5-E5-G5.
-	{ { 523, 150 }, { 659, 150 }, { 784, 300 } },
-	// BREAK_END: open chime A4-D5-A5.
-	{ { 440, 150 }, { 587, 150 }, { 880, 300 } },
-	// LONG_BREAK_END: wide fanfare G4-C5-C6.
-	{ { 392, 150 }, { 523, 150 }, { 1047, 300 } },
-	// STARTUP: dedicated boot sound E5-G5-C6.
-	{ { 659, 150 }, { 784, 150 }, { 1047, 300 } },
+	// FOCUS_END
+	{{659, 150}, {831, 150}, {988, 150}, {831, 150}, {1319, 300}},
+	// BREAK_END
+	{{880, 150}, {880, 150}, {988, 150}, {988, 150}, {1047, 300}},
+	// LONG_BREAK_END
+	{{1047, 150}, {1047, 100}, {0, 200}, {1175, 150}, {1319, 300}},
+	// STARTUP
+	{{880, 150}, {880, 100}, {0, 200}, {1109, 150}, {1319, 300}},
 };
 
 static uint8_t melody_busy_flag;
