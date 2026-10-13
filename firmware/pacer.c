@@ -1,17 +1,21 @@
 #include "ch32fun.h"
+#include <stdio.h>
+
+#include "display.h"
 
 int main( void )
 {
 	SystemInit();
 	funGpioInitAll();
+	display_init();
 
-	funPinMode( PC7, GPIO_Speed_10MHz | GPIO_CNF_OUT_PP );
+	printf( "pacer display check\n" );
 
 	while( 1 )
 	{
-		funDigitalWrite( PC7, FUN_HIGH );
+		display_show( 0, DISPLAY_NUM_BARS, 0 );
 		Delay_Ms( 500 );
-		funDigitalWrite( PC7, FUN_LOW );
+		display_show( 4, 0, 1 );
 		Delay_Ms( 500 );
 	}
 }
