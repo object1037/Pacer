@@ -104,13 +104,14 @@ git commit -m "feat: scaffold pacer firmware with 12MHz HSE clock"
 // display_word(1,20) == 0xFFFFF8  (bit3 = Set1 + full bar)
 // display_word(4,0)  == 0x00000F  (all 4 set bits, no bar)
 // display_word(0,0)  == 0x000000
-// display_word(0,1)  == 0x000010  (only rightmost remaining bit = bit4)
+// display_word(0,1)  == 0x800000  (only leftmost remaining bit = bit23)
+// display_word(0,19) == 0xFFFFE0  (rightmost remaining bit = bit4 out first)
 ```
 
 - [ ] **Step 2: Implement `display.h` with SPI + `display_word()` + `display_show()`**
 
 Signature: `void display_init(void); uint32_t display_word(uint8_t sets_completed, uint8_t bars_lit); void display_show(uint8_t sets_completed, uint8_t bars_lit, uint8_t break_on);`
-Approach: hardware SPI per `hc595_demo.c:25-46` (SPI1 master, PC5/PC6 AF-PP, `SPI_CPHA_1Edge|SPI_CPOL_Low`, Master, Prescaler_2, NSS_Soft, 8-bit, FullDuplex) but latch on PC4 (not demo PC3); add `hc595_send24()` (3x `SPI_transfer_8` MSB-first, demo only has send8/16); shift MSB-first 24 bits (bit23=3H first, bit0=1A last), pulse latch; `display_word` builds u24: bits0-3 = sets (bit3=Set1 … bit0=Set4: `sets_completed` lights Set1..SetN), bits4-23 = lowest `bars_lit` bits (right→left fill).
+Approach: hardware SPI per `hc595_demo.c:25-46` (SPI1 master, PC5/PC6 AF-PP, `SPI_CPHA_1Edge|SPI_CPOL_Low`, Master, Prescaler_2, NSS_Soft, 8-bit, FullDuplex) but latch on PC4 (not demo PC3); add `hc595_send24()` (3x `SPI_transfer_8` MSB-first, demo only has send8/16); shift MSB-first 24 bits (bit23=3H first, bit0=1A last), pulse latch; `display_word` builds u24: bits0-3 = sets (bit3=Set1 … bit0=Set4: `sets_completed` lights Set1..SetN), bits4-23 = bar anchored at the leftmost LED (bit23=3H): with N bars lit, bits (24-N)..23 are set, so the rightmost LED (bit4=1E) goes out first and the leftmost last.
 
 - [ ] **Step 3: Verify with host gcc logic test (no MCU headers)**
 

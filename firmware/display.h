@@ -39,10 +39,12 @@ static inline uint32_t display_word( uint8_t sets_completed, uint8_t bars_lit )
 		word |= ( uint32_t )1 << ( 3 - i );
 	}
 
-	// Bar fills from the rightmost LED (bit4) toward the left.
+	// Bar anchors at the leftmost LED (bit23 = 3H) and recedes toward the
+	// right: with N bars lit, bits (24-N)..23 are set, so the rightmost
+	// LED (bit4 = 1E) extinguishes first and the leftmost last.
 	for( uint8_t i = 0; i < bars_lit; i++ )
 	{
-		word |= ( uint32_t )1 << ( 4 + i );
+		word |= ( uint32_t )1 << ( 23 - i );
 	}
 
 	return word;
