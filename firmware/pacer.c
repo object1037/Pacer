@@ -29,10 +29,11 @@ static inline void play_for_event( pom_event_t ev )
 int main( void )
 {
 	pomodoro_t pom;
+	tickclock_t clock;
 	uint32_t last_draw;
 	uint8_t blink_toggle = 0;
-	uint32_t blink_start = 0;
-	uint32_t last_blink = 0;
+	uint32_t blink_start_ms = 0;
+	uint32_t last_blink_ms = 0;
 
 	SystemInit();
 	funGpioInitAll();
@@ -40,19 +41,22 @@ int main( void )
 
 	printf( "pacer: pomodoro timer\n" );
 
-	pomodoro_init( &pom, funSysTick32(), (uint32_t)Ticks_from_Ms( STARTUP_TEST_MS ) );
+	// All phase logic runs in MILLISECONDS (see tickclock_t): raw SysTick
+	// deadlines can neither be computed (int overflow) nor stored (uint32
+	// laps every ~24 min) for 25-30 min phases. Short-horizon users
+	// (melody scheduler, display refresh) keep using raw ticks.
+	tickclock_init( &clock, funSysTick32() );
+	pomodoro_init( &pom, 0, STARTUP_TEST_MS );
 	display_show( DISPLAY_NUM_SETS, DISPLAY_NUM_BARS, 1 );
 	melody_start( JINGLE_STARTUP );
 	last_draw = funSysTick32();
 
 	while( 1 )
 	{
-		uint32_t now = funSysTick32();
-		pom_event_t ev = pomodoro_update( &pom, now,
-			(uint32_t)Ticks_from_Ms( FOCUS_MS ),
-			(uint32_t)Ticks_from_Ms( BREAK_MS ),
-			(uint32_t)Ticks_from_Ms( LONG_BREAK_MS ),
-			(uint32_t)Ticks_from_Ms( STARTUP_TEST_MS ) );
+		uint32_t now_tick = funSysTick32();
+		uint32_t now_ms = tickclock_ms( &clock, now_tick, DELAY_MS_TIME );
+		pom_event_t ev = pomodoro_update( &pom, now_ms,
+			FOCUS_MS, BREAK_MS, LONG_BREAK_MS, STARTUP_TEST_MS );
 
 		if( ev != POM_EV_NONE )
 		{
@@ -63,26 +67,24 @@ int main( void )
 			play_for_event( ev );
 			if( pom_starts_blink( ev ) )
 			{
-				blink_start = now;
+				blink_start_ms = now_ms;
 				blink_toggle = 1;
-				last_blink = now;
+				last_blink_ms = now_ms;
 			}
 		}
 
 		melody_poll();
 
 		if( ev != POM_EV_NONE
-			|| TimeElapsed32( now, last_draw + DISPLAY_REFRESH_TICKS ) >= 0 )
+			|| TimeElapsed32( now_tick, last_draw + DISPLAY_REFRESH_TICKS ) >= 0 )
 		{
-			uint8_t blink_on = pom_blink_active( now, blink_start,
-				(uint32_t)Ticks_from_Ms( BLINK_MS ) );
+			uint8_t blink_on = pom_blink_active( now_ms, blink_start_ms, BLINK_MS );
 
 			if( blink_on && pom.phase != PH_BOOT
-				&& TimeElapsed32( now,
-					last_blink + (uint32_t)Ticks_from_Ms( BLINK_TOGGLE_MS ) ) >= 0 )
+				&& (uint32_t)( now_ms - last_blink_ms ) >= BLINK_TOGGLE_MS )
 			{
 				blink_toggle ^= 1;
-				last_blink = now;
+				last_blink_ms = now_ms;
 			}
 			if( pom.phase == PH_BOOT )
 			{
@@ -90,12 +92,12 @@ int main( void )
 			}
 			else
 			{
-				uint32_t elapsed = now - pom.phase_start;
+				uint32_t elapsed = now_ms - pom.phase_start;
 				display_show( pom.sets_completed,
 					bars_for( elapsed, pom.phase_len ),
 					pom_pc7_out( pom.phase, blink_on, blink_toggle ) );
 			}
-			last_draw = now;
+			last_draw = now_tick;
 		}
 	}
 }

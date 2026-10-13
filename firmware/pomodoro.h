@@ -10,6 +10,31 @@
 
 #define POM_BARS 20
 
+// Millisecond clock fed by a fast-wrapping tick counter (e.g. ch32fun
+// SysTick at core/8, which laps a uint32 every ~24 min at 24 MHz — far too
+// fast to hold 25-30 min phase deadlines in raw ticks, and ms*rate
+// overflows int). The caller polls often (<< one lap); each poll's delta
+// is wrap-safe, accumulated exactly in 64 bits, and reported as ms.
+typedef struct
+{
+	uint32_t last_tick;
+	uint64_t tick_total;
+} tickclock_t;
+
+static inline void tickclock_init( tickclock_t *c, uint32_t now_tick )
+{
+	c->last_tick = now_tick;
+	c->tick_total = 0;
+}
+
+static inline uint32_t tickclock_ms( tickclock_t *c, uint32_t now_tick,
+	uint32_t ticks_per_ms )
+{
+	c->tick_total += (uint32_t)( now_tick - c->last_tick );
+	c->last_tick = now_tick;
+	return (uint32_t)( c->tick_total / ticks_per_ms );
+}
+
 typedef enum
 {
 	PH_BOOT,
