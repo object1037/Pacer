@@ -120,4 +120,34 @@ static inline uint8_t pom_break_on( phase_t phase )
 	return ( phase == PH_FOCUS ) ? 0 : 1;
 }
 
+// PC7 output with jingle visual cue: while the post-phase-change blink
+// window is active (outside BOOT) the LED blinks under the caller's toggle
+// bit instead of following the break rule, so each phase change has a
+// visual cue even in FOCUS. BOOT stays solid so the lamp test shows every
+// LED lit.
+static inline uint8_t pom_pc7_out( phase_t phase, uint8_t blink_active, uint8_t blink_toggle )
+{
+	if( blink_active && phase != PH_BOOT )
+	{
+		return blink_toggle ? 1 : 0;
+	}
+	return pom_break_on( phase );
+}
+
+// Blink window check: true for `len` time units after `start` (wrap-safe).
+// The window is independent of jingle length.
+static inline uint8_t pom_blink_active( uint32_t now, uint32_t start, uint32_t len )
+{
+	return (uint32_t)( now - start ) < len;
+}
+
+// Whether this phase-machine event opens a blink window: only the
+// end-of-phase events do. BOOT_DONE (startup) never blinks.
+static inline uint8_t pom_starts_blink( pom_event_t ev )
+{
+	return ev == POM_EV_FOCUS_END
+		|| ev == POM_EV_BREAK_END
+		|| ev == POM_EV_LONG_BREAK_END;
+}
+
 #endif
