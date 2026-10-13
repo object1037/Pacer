@@ -82,6 +82,9 @@ static inline pom_event_t pomodoro_update( pomodoro_t *p, uint32_t now,
 
 	case PH_FOCUS:
 		p->phase_start = now;
+		// The focus just finished: its set counts as completed immediately,
+		// so the count is visible during the following break / long break.
+		p->sets_completed = p->set_number;
 		if( p->set_number < 4 )
 		{
 			p->phase = PH_BREAK;
@@ -93,7 +96,6 @@ static inline pom_event_t pomodoro_update( pomodoro_t *p, uint32_t now,
 		return POM_EV_FOCUS_END;
 
 	case PH_BREAK:
-		p->sets_completed = p->set_number;
 		p->set_number++;
 		p->phase = PH_FOCUS;
 		p->phase_start = now;
