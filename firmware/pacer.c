@@ -32,7 +32,7 @@ int main( void )
 	tickclock_t clock;
 	uint32_t last_draw;
 	uint8_t blink_toggle = 0;
-	uint32_t blink_start_ms = 0;
+	uint32_t blink_start_ms = pom_blink_idle( BLINK_MS );
 	uint32_t last_blink_ms = 0;
 
 	SystemInit();

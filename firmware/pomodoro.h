@@ -166,6 +166,13 @@ static inline uint8_t pom_blink_active( uint32_t now, uint32_t start, uint32_t l
 	return (uint32_t)( now - start ) < len;
 }
 
+// Idle start value: a window that is already expired at t=0, so boot opens
+// with no phantom blink. Only a real phase event opens a window.
+static inline uint32_t pom_blink_idle( uint32_t len )
+{
+	return (uint32_t)( 0u - len );
+}
+
 // Whether this phase-machine event opens a blink window: only the
 // end-of-phase events do. BOOT_DONE (startup) never blinks.
 static inline uint8_t pom_starts_blink( pom_event_t ev )
