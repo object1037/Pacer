@@ -6,3 +6,8 @@ hardware/pacer_bottom/pacer_bottom-backups
 hardware/fp-info-cache
 hardware/pacer_bottom/fp-info-cache
 .worktrees/
+*.elf
+*.hex
+*.lst
+*.bin
+*.map
