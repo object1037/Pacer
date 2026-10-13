@@ -1,6 +1,6 @@
 all : flash
 
-TARGET:=tone_demo
+TARGET:=pacer
 
 TARGET_MCU?=CH32V003
 include ./ch32fun/ch32fun/ch32fun.mk
