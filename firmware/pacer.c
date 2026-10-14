@@ -117,7 +117,14 @@ int main( void )
 		}
 
 #if SLEEP_ENABLED
-		__WFI();
+		// Sleep only in silence: WFI cycling steps the core current at the
+		// wake rate, and that supply ripple audibly roughens the piezo.
+		// Spinning through ~1 s jingles costs nothing measurable and keeps
+		// note starts exact; silent phases still sleep.
+		if( !melody_busy() )
+		{
+			__WFI();
+		}
 #endif
 	}
 }
