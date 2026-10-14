@@ -5,6 +5,7 @@
 #include "display.h"
 #include "melody.h"
 #include "pomodoro.h"
+#include "sleep.h"
 
 #define DISPLAY_REFRESH_TICKS Ticks_from_Ms( 100 )
 
@@ -33,6 +34,7 @@ int main( void )
 {
 	pomodoro_t pom;
 	tickclock_t clock;
+	display_state_t disp;
 	uint32_t last_draw;
 	uint8_t blink_toggle = 0;
 	uint32_t blink_start_ms = pom_blink_idle( BLINK_MS );
@@ -41,6 +43,7 @@ int main( void )
 	SystemInit();
 	funGpioInitAll();
 	display_init();
+	sleep_init();
 
 	printf( "pacer: pomodoro timer\n" );
 
@@ -49,6 +52,7 @@ int main( void )
 	// laps every ~24 min) for 25-30 min phases. Short-horizon users
 	// (melody scheduler, display refresh) keep using raw ticks.
 	tickclock_init( &clock, funSysTick32() );
+	display_state_init( &disp );
 	pomodoro_init( &pom, 0, STARTUP_TEST_MS );
 	display_show( DISPLAY_NUM_SETS, DISPLAY_NUM_BARS, 1 );
 	melody_start( JINGLE_CYCLE_START );
@@ -82,6 +86,9 @@ int main( void )
 			|| TimeElapsed32( now_tick, last_draw + DISPLAY_REFRESH_TICKS ) >= 0 )
 		{
 			uint8_t blink_on = pom_blink_active( now_ms, blink_start_ms, BLINK_MS );
+			uint8_t sets;
+			uint8_t bars;
+			uint8_t break_out;
 
 			if( blink_on && pom.phase != PH_BOOT
 				&& (uint32_t)( now_ms - last_blink_ms ) >= BLINK_TOGGLE_MS )
@@ -91,16 +98,24 @@ int main( void )
 			}
 			if( pom.phase == PH_BOOT )
 			{
-				display_show( DISPLAY_NUM_SETS, DISPLAY_NUM_BARS, 1 );
+				sets = DISPLAY_NUM_SETS;
+				bars = DISPLAY_NUM_BARS;
+				break_out = 1;
 			}
 			else
 			{
 				uint32_t elapsed = now_ms - pom.phase_start;
-				display_show( pom.sets_completed,
-					bars_for( elapsed, pom.phase_len ),
-					pom_pc7_out( pom.phase, blink_on, blink_toggle ) );
+				sets = pom.sets_completed;
+				bars = bars_for( elapsed, pom.phase_len );
+				break_out = pom_pc7_out( pom.phase, blink_on, blink_toggle );
+			}
+			if( display_needs_update( &disp, display_word( sets, bars ), break_out ) )
+			{
+				display_show( sets, bars, break_out );
 			}
 			last_draw = now_tick;
 		}
+
+		__WFI();
 	}
 }

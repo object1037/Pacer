@@ -20,6 +20,35 @@
 #define DISPLAY_NUM_BARS 20
 #define DISPLAY_NUM_SETS 4
 
+// Refresh gate: remembers the last shown content so the caller only clocks
+// the shift registers when something actually changed.
+typedef struct
+{
+	uint32_t word;
+	uint8_t break_on;
+	uint8_t valid;
+} display_state_t;
+
+static inline void display_state_init( display_state_t *s )
+{
+	s->word = 0;
+	s->break_on = 0;
+	s->valid = 0;
+}
+
+static inline uint8_t display_needs_update( display_state_t *s,
+	uint32_t word, uint8_t break_on )
+{
+	if( s->valid && s->word == word && s->break_on == break_on )
+	{
+		return 0;
+	}
+	s->word = word;
+	s->break_on = break_on;
+	s->valid = 1;
+	return 1;
+}
+
 static inline uint32_t display_word( uint8_t sets_completed, uint8_t bars_lit )
 {
 	uint32_t word = 0;
