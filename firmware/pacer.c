@@ -82,15 +82,23 @@ int main( void )
 
 		melody_poll();
 
+		// Spin while anything is announced, sleep otherwise: an open blink
+		// cue covers every phase-end jingle, and the melody check covers
+		// the BOOT jingle (which has no blink window). Spinning keeps note
+		// starts exact and the supply current steady, so the piezo stays
+		// clean; silent phases still sleep.
+		uint8_t announcing = melody_busy()
+			|| ( pom_blink_active( now_ms, blink_start_ms, BLINK_MS )
+				&& pom.phase != PH_BOOT );
+
 		if( ev != POM_EV_NONE
 			|| TimeElapsed32( now_tick, last_draw + DISPLAY_REFRESH_TICKS ) >= 0 )
 		{
-			uint8_t blink_on = pom_blink_active( now_ms, blink_start_ms, BLINK_MS );
 			uint8_t sets;
 			uint8_t bars;
 			uint8_t break_out;
 
-			if( blink_on && pom.phase != PH_BOOT
+			if( announcing
 				&& (uint32_t)( now_ms - last_blink_ms ) >= BLINK_TOGGLE_MS )
 			{
 				blink_toggle ^= 1;
@@ -107,7 +115,7 @@ int main( void )
 				uint32_t elapsed = now_ms - pom.phase_start;
 				sets = pom.sets_completed;
 				bars = bars_for( elapsed, pom.phase_len );
-				break_out = pom_pc7_out( pom.phase, blink_on, blink_toggle );
+				break_out = pom_pc7_out( pom.phase, announcing, blink_toggle );
 			}
 			if( display_needs_update( &disp, display_word( sets, bars ), break_out ) )
 			{
@@ -117,11 +125,7 @@ int main( void )
 		}
 
 #if SLEEP_ENABLED
-		// Sleep only in silence: WFI cycling steps the core current at the
-		// wake rate, and that supply ripple audibly roughens the piezo.
-		// Spinning through ~1 s jingles costs nothing measurable and keeps
-		// note starts exact; silent phases still sleep.
-		if( !melody_busy() )
+		if( !announcing )
 		{
 			__WFI();
 		}
