@@ -19,13 +19,21 @@
 #define SLEEP_WAKE_MS 10
 #endif
 
+// Escape hatch for A/B testing: 1 = WFI sleep + SysTick wake ticks,
+// 0 = classic busy-spin (pre-sleep behavior, no SysTick IRQ at all).
+#ifndef SLEEP_ENABLED
+#define SLEEP_ENABLED 1
+#endif
+
 #ifndef DISPLAY_HOST_TEST
 
 static inline void sleep_init( void )
 {
+#if SLEEP_ENABLED
 	SysTick->CMP = SysTick->CNT + (uint32_t)Ticks_from_Ms( SLEEP_WAKE_MS );
 	SysTick->CTLR |= SYSTICK_CTLR_STIE;
 	NVIC_EnableIRQ( SysTick_IRQn );
+#endif
 }
 
 void SysTick_Handler( void ) __attribute__( ( interrupt ) );

@@ -116,6 +116,8 @@ int main( void )
 			last_draw = now_tick;
 		}
 
+#if SLEEP_ENABLED
 		__WFI();
+#endif
 	}
 }
