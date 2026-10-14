@@ -1,5 +1,7 @@
 # Pacer
 
+![Pacer](./docs/pacer.webp)
+
 Runs an automatic Pomodoro Technique cycle upon powering on.
 
 ## How It Works
