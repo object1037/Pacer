@@ -15,11 +15,14 @@ static inline void play_for_event( pom_event_t ev )
 	case POM_EV_FOCUS_END:
 		melody_start( JINGLE_FOCUS_END );
 		break;
+	case POM_EV_FINAL_FOCUS_END:
+		melody_start( JINGLE_LONG_BREAK_START );
+		break;
 	case POM_EV_BREAK_END:
 		melody_start( JINGLE_BREAK_END );
 		break;
 	case POM_EV_LONG_BREAK_END:
-		melody_start( JINGLE_LONG_BREAK_END );
+		melody_start( JINGLE_CYCLE_START );
 		break;
 	default:
 		break;
@@ -48,7 +51,7 @@ int main( void )
 	tickclock_init( &clock, funSysTick32() );
 	pomodoro_init( &pom, 0, STARTUP_TEST_MS );
 	display_show( DISPLAY_NUM_SETS, DISPLAY_NUM_BARS, 1 );
-	melody_start( JINGLE_STARTUP );
+	melody_start( JINGLE_CYCLE_START );
 	last_draw = funSysTick32();
 
 	while( 1 )

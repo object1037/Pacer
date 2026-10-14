@@ -48,8 +48,9 @@ typedef enum
 	POM_EV_NONE,
 	POM_EV_BOOT_DONE, // BOOT self-test over; focus countdown starts now
 	POM_EV_FOCUS_END, // play JINGLE_FOCUS_END, countdown of next phase starts now
+	POM_EV_FINAL_FOCUS_END, // 4th focus over: play JINGLE_LONG_BREAK_START
 	POM_EV_BREAK_END, // play JINGLE_BREAK_END, countdown of next phase starts now
-	POM_EV_LONG_BREAK_END // play JINGLE_LONG_BREAK_END, cycle resets now
+	POM_EV_LONG_BREAK_END // long break over: play JINGLE_CYCLE_START, cycle resets now
 } pom_event_t;
 
 typedef struct
@@ -118,7 +119,7 @@ static inline pom_event_t pomodoro_update( pomodoro_t *p, uint32_t now,
 		}
 		p->phase = PH_LONG_BREAK;
 		p->phase_len = long_break_len;
-		return POM_EV_FOCUS_END;
+		return POM_EV_FINAL_FOCUS_END;
 
 	case PH_BREAK:
 		p->set_number++;
@@ -178,6 +179,7 @@ static inline uint32_t pom_blink_idle( uint32_t len )
 static inline uint8_t pom_starts_blink( pom_event_t ev )
 {
 	return ev == POM_EV_FOCUS_END
+		|| ev == POM_EV_FINAL_FOCUS_END
 		|| ev == POM_EV_BREAK_END
 		|| ev == POM_EV_LONG_BREAK_END;
 }
