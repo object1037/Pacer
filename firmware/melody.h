@@ -49,18 +49,18 @@ typedef struct
 
 #define MELODY_NOTES_PER_JINGLE 5
 #define MELODY_GAP_MS 10
-// Uniform total, verified by the host sim: (150+10)*4 + 300.
-#define MELODY_TOTAL_MS 940
+// Uniform total, verified by the host sim: (160+10)*4 + 320.
+#define MELODY_TOTAL_MS 1000
 
 static const melody_note_t melody_table[ JINGLE_COUNT ][ MELODY_NOTES_PER_JINGLE ] = {
 	// FOCUS_END
-	{{659, 150}, {831, 150}, {988, 150}, {831, 150}, {1319, 300}},
+	{{659, 160}, {831, 160}, {988, 160}, {831, 160}, {1319, 320}},
 	// BREAK_END
-	{{880, 150}, {880, 150}, {988, 150}, {988, 150}, {1047, 300}},
+	{{880, 160}, {880, 160}, {988, 160}, {988, 160}, {1047, 320}},
 	// LONG_BREAK_END
-	{{1047, 150}, {1047, 100}, {0, 200}, {1175, 150}, {1319, 300}},
+	{{1047, 160}, {1047, 105}, {0, 215}, {1175, 160}, {1319, 320}},
 	// STARTUP
-	{{880, 150}, {880, 100}, {0, 200}, {1109, 150}, {1319, 300}},
+	{{880, 160}, {880, 105}, {0, 215}, {1109, 160}, {1319, 320}},
 };
 
 static uint8_t melody_busy_flag;
