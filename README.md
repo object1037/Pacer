@@ -6,6 +6,8 @@ Runs an automatic Pomodoro Technique cycle upon powering on.
 
 ## How It Works
 
+https://github.com/user-attachments/assets/2add35af-41f7-42f3-8dcc-8eead1801370
+
 Executes a repeating 4-set cycle:
 
 - **Standard Sets (Sets 1–3)**
